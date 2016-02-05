@@ -25,7 +25,7 @@ Battleship.MainMenu.prototype = {
             for(var col = 0; maxCol > col; col++) {
                  var ship = game.add.sprite(posX, posY, 'ship');
                  ship.scale.setTo(0.5, 0.5);
-                 game.add.tween(ship).to({ y: posY-10 }, 1100, Phaser.Easing.Bounce.InOut, true, 1, 20, true).loop(true);
+                 game.add.tween(ship).to({ y: posY-10 }, 1100, "Linear", true, 1, 20, true).loop(true);
                  posX += shipWidth;
                  // add tween effect to ship
             }
