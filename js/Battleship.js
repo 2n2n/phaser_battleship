@@ -8,11 +8,16 @@ Battleship.MainMenu.prototype = {
         game.load.image('ship', 'assets/battleship.png');
         game.stage.backgroundColor = "#0B65F8";
     },
+    render: function(game) {
+        Battleship.Ships.forEach(function(ship) {
+            game.debug.bodyInfo(ship, 32, 32)
+            game.debug.body(ship);
+        });
+    },
     create: function(game) {
-        Battleship.myBoard.backgroundColor = "#fff";
         // console.log(Battleship.myBoard.x, Battleship.myBoard.y)
-        var Ships = game.add.group();
-
+        Battleship.Ships = game.add.group();
+        Battleship.Ships.enableBody = true;
         var maxRow = 3;
         var maxCol = 5;
         var shipWidth = 90;
@@ -28,13 +33,14 @@ Battleship.MainMenu.prototype = {
             for(var col = 0; maxCol > col; col++) {
                 var shipModel = new Phaser.Sprite(game, posX, posY,'ship');
                 shipModel.scale.setTo(0.5,0.5);
+                shipModel.enableBody = true;
                 shipModel.inputEnabled = true;
                 game.add.tween(shipModel).to({ y: posY - Math.floor((Math.random() * 10) + 1), x: posX - Math.floor((Math.random() * 10) + 1) }, 1100, "Linear", true, 1, 20, true).loop(true);
                 shipModel.events.onInputDown.add(function(sprite, pointer) {
                     sprite.kill();
                 });
 
-                Ships.addChild(shipModel);
+                Battleship.Ships.addChild(shipModel);
 
                 posX += shipWidth;
 
