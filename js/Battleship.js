@@ -10,7 +10,6 @@ Battleship.MainMenu.prototype = {
     },
     render: function(game) {
         Battleship.Ships.forEach(function(ship) {
-            game.debug.bodyInfo(ship, 32, 32)
             game.debug.body(ship);
         });
     },
@@ -32,7 +31,7 @@ Battleship.MainMenu.prototype = {
             posX = 0;
             for(var col = 0; maxCol > col; col++) {
                 var shipModel = new Phaser.Sprite(game, posX, posY,'ship');
-                shipModel.scale.setTo(0.5,0.5);
+                shipModel.scale.setTo(0.1,0.1);
                 shipModel.enableBody = true;
                 shipModel.inputEnabled = true;
                 game.add.tween(shipModel).to({ y: posY - Math.floor((Math.random() * 10) + 1), x: posX - Math.floor((Math.random() * 10) + 1) }, 1100, "Linear", true, 1, 20, true).loop(true);
@@ -53,8 +52,10 @@ Battleship.MainMenu.prototype = {
             }
             posY += shipHeight;
         }  // end loop
-        // console.log(Ships.pivot)
-        // Ships.pivot.setTo(0.5 ,0.5);
-        // Ships.position.setTo(game.world.centerX, game.world.centerY);
+        Battleship.Ships.x = game.world.centerX - (Battleship.Ships.width/2);
+        Battleship.Ships.y = game.world.centerY - (Battleship.Ships.height/2);
+        game.physics.arcade.enable(Battleship.Ships);
+    },
+    update: function(game) {
     }
 }
