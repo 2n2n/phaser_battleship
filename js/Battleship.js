@@ -2,6 +2,10 @@ var Battleship = {};
 Battleship.enemyBoard = {};
 Battleship.myBoard = {};
 Battleship.Game = function(game) {}
+Battleship.x = 0;
+Battleship.y = 0;
+Battleship.selected;
+Battleship.LineTo;
 
 Battleship.Game.prototype = {
     preload: function(game) {
@@ -9,9 +13,10 @@ Battleship.Game.prototype = {
         game.stage.backgroundColor = "#0B65F8";
     },
     render: function(game) {
-        Battleship.Ships.forEach(function(ship) {
-            // game.debug.body(ship);
-        });
+        if(Battleship.LineTo != undefined ) 
+            game.debug.geom(Battleship.LineTo);
+        if(Battleship.selected != undefined)
+            game.debug.spriteInfo(Battleship.selected,32, 32);
     },
     create: function(game) {
         Battleship.Ships = game.add.group();
@@ -38,10 +43,16 @@ Battleship.Game.prototype = {
                 shipModel.enableBody = true;
                 shipModel.inputEnabled = true;
                 game.add.tween(shipModel).to({ y: posY - Math.floor((Math.random() * 10) + 1), x: posX - Math.floor((Math.random() * 10) + 1) }, 1100, "Linear", true, 1, 20, true).loop(true);
-                shipModel.events.onInputDown.add(function(sprite, pointer) {
-                    sprite.kill();
-                });
 
+                shipModel.anchor.setTo(0.5, 0.5);
+                shipModel.events.onInputDown.add(function(ship, pointer) {
+                    Battleship.x = pointer.x;
+                    Battleship.y = pointer.y;
+                    
+                    Battleship.LineTo = new Phaser.Line();
+                    Battleship.LineTo.start.set(pointer.x, pointer.y);
+                    Battleship.selected = ship;
+                });
                 Battleship.Ships.addChild(shipModel);
 
                 posX += padding;
@@ -50,14 +61,34 @@ Battleship.Game.prototype = {
             posY += padding;
         }  // end loop
 
-        // loop all battleships and bind events here.
-        // Battleship.Ships.forEachAlive(function(ship) {
-        //     ship.kill();
-        // })
         Battleship.Ships.x = game.world.centerX - (Battleship.Ships.width/2);
         Battleship.Ships.y = game.world.centerY - (Battleship.Ships.height/2);
         game.physics.arcade.enable(Battleship.Ships);
+
+        // game.input.onUp.add(function(pointer) {
+        //     var angle = game.math.angleBetween(Battleship.x, Battleship.y, game.input.mousePointer.x, game.input.mousePointer.y) * 57.2958;
+        //     Battleship.selected.angle = angle;
+        // });
+
     },
     update: function(game) {
+        if(Battleship.selected != undefined ) {
+            var angle = game.math.angleBetween(Battleship.x, Battleship.y, game.input.mousePointer.x, game.input.mousePointer.y);
+            Battleship.selected.angle = game.math.radToDeg(angle);
+            Battleship.LineTo.end.set(game.input.mousePointer.x, game.input.mousePointer.y);
+        }
+
+        game.input.onUp.add(function(pointer) {
+            Battleship.selected = undefined;
+            Battleship.LineTo = undefined
+        })
+        // if (game.input.activePointer.x < Battleship.x) {    
+        // mouse pointer is to the left 
+        // }  
+        // else {    
+        // // console.log('mouse at right'); 
+            
+        // // mouse pointer is to the right  }
+        // }
     }
 }
