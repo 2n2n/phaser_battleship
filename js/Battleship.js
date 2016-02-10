@@ -13,8 +13,10 @@ Battleship.Game.prototype = {
         game.stage.backgroundColor = "#0B65F8";
     },
     render: function(game) {
-        if(Battleship.LineTo != undefined ) 
+        if(Battleship.LineTo != undefined ) {
+            game.debug.lineInfo(Battleship.LineTo, 32,200);
             game.debug.geom(Battleship.LineTo);
+        }
         if(Battleship.selected != undefined)
             game.debug.spriteInfo(Battleship.selected,32, 32);
     },
@@ -42,15 +44,17 @@ Battleship.Game.prototype = {
                 shipModel.scale.setTo(0.3,0.3);
                 shipModel.enableBody = true;
                 shipModel.inputEnabled = true;
-                game.add.tween(shipModel).to({ y: posY - Math.floor((Math.random() * 10) + 1), x: posX - Math.floor((Math.random() * 10) + 1) }, 1100, "Linear", true, 1, 20, true).loop(true);
-
+                shipModel.movingTween = game.add.tween(shipModel).to({ y: posY - Math.floor((Math.random() * 10) + 1), x: posX - Math.floor((Math.random() * 10) + 1) }, 1100, "Linear", true, 1, 20, true);
+                shipModel.movingTween.loop(true);
                 shipModel.anchor.setTo(0.5, 0.5);
                 shipModel.events.onInputDown.add(function(ship, pointer) {
+
                     Battleship.x = pointer.x;
                     Battleship.y = pointer.y;
-                    
-                    Battleship.LineTo = new Phaser.Line();
-                    Battleship.LineTo.start.set(pointer.x, pointer.y);
+                    console.log(ship.position.x, ship.position.y);
+                    Battleship.LineTo = new Phaser.Line(ship.worldPosition.x, ship.worldPosition.y, pointer.x, pointer.y);
+
+                    ship.movingTween.pause();
                     Battleship.selected = ship;
                 });
                 Battleship.Ships.addChild(shipModel);
@@ -73,12 +77,14 @@ Battleship.Game.prototype = {
     },
     update: function(game) {
         if(Battleship.selected != undefined ) {
-            var angle = game.math.angleBetween(Battleship.x, Battleship.y, game.input.mousePointer.x, game.input.mousePointer.y);
-            Battleship.selected.angle = game.math.radToDeg(angle);
+            var angle = Math.atan2(Battleship.y - game.input.mousePointer.y, Battleship.x - game.input.mousePointer.x) * 180 / Math.PI;
+            Battleship.selected.angle = Phaser.Math.radToDeg(Battleship.LineTo.normalAngle)-180;
             Battleship.LineTo.end.set(game.input.mousePointer.x, game.input.mousePointer.y);
+
         }
 
         game.input.onUp.add(function(pointer) {
+            if(Battleship.selected != undefined ) Battleship.selected.movingTween.resume();
             Battleship.selected = undefined;
             Battleship.LineTo = undefined
         })
