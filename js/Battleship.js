@@ -1,6 +1,4 @@
 var Battleship = {};
-Battleship.EnemyShip = {};
-Battleship.myBoard = {};
 Battleship.Game = function(game) {}
 Battleship.x = 0;
 Battleship.y = 0;
@@ -22,80 +20,138 @@ Battleship.Game.prototype = {
         if(Battleship.selected != undefined)
             game.debug.spriteInfo(Battleship.selected,32, 32);
 
-        Battleship.EnemyShip.forEachAlive(function(ship) {
-            game.debug.geom(ship.hitArea, "rgba(100,50,20,0.2)");
+        Battleship.EnemyFleet.forEachAlive(function(ship) {
+            game.debug.body(ship);
+
         });
+        game.debug.geom(game.camera.view)
+        game.debug.cameraInfo(game.camera, 500, 32);
+
     },
     create: function(game) {
-        Battleship.Ships;
-        Battleship.EnemyShip;
+        game.world.setBounds(0, 0, 1920, 1200);
+        var text = game.add.text(0,0, "Battleship v0.0", {
+            font: 'bold 32px IM Fell DW Pica',
+            fill: '#fff',
+            boundsAlignH: 'center',
+            boundsAlignV: 'middle'
+        });
+        text.setShadow(3, 3, 'rgba(0,0,0,0.5)', 2);
+
+        text.setTextBounds(game.world.centerY, game.world.centerX - (text.width/2), 800, 100);
+
+        Battleship.Fleet;
+        Battleship.EnemyFleet;
 
         // create the platoons   
         //create the ships board
-        Battleship.Ships = makeBoardGroup(game, [
+        Battleship.Fleet = makeBoardGroup(game, [
             ["o","o","o","x","o"],
             ["x","o","x","o","o"],
             ["o","o","o","o","x"]
         ], 'myfleet');
 
+        game.camera.focusOn(Battleship.Fleet.children[0]);
 
-        Battleship.EnemyShip = makeBoardGroup(game, [
+        Battleship.EnemyFleet = makeBoardGroup(game, [
             ["o","o","o","x","o"],
             ["x","o","x","o","o"],
             ["o","o","o","o","x"]
         ], 'enemyfleet');
 
-        // console.log(Battleship.EnemyShip.name, Battleship.Ships.name);
-        Battleship.EnemyShip.enableBody = true;
-        Battleship.EnemyShip.inputEnabled  = true;
+        game.physics.arcade.enable([Battleship.Fleet, Battleship.EnemyFleet]);
 
-        Battleship.Ships.x = game.world.centerX - (Battleship.Ships.width/2);
-        Battleship.Ships.y = game.world.centerY + (Battleship.Ships.height/2);
+        // initialize the battleshi and Enemyship and bind any events needed.
+        [Battleship.Fleet, Battleship.EnemyFleet].forEach(function(group) {  
+            var x = 0;
+            var y = 0;
 
-        Battleship.EnemyShip.x = game.world.centerX - (Battleship.EnemyShip.width/2);
-        Battleship.EnemyShip.y = game.world.centerY - (Battleship.EnemyShip.height);
-
-        game.physics.arcade.enable([Battleship.Ships, Battleship.EnemyShip]);
-
-        // set properties inside the sprite here.
-        Battleship.Ships.forEachAlive(function(ship) {
-            if(Battleship.TURN == ship.parent.name) {
-                ship.ammo = 1;
+            group.enableBody = true;
+            if(group.name == 'myfleet') { // place your fleet below the screen
+                x = game.world.centerX - (group.width/2);
+                y = game.world.centerY + (group.height/2);
             }
-        });
-        Battleship.EnemyShip.HitArea = new Phaser.Circle(0, 0, Battleship.EnemyShip.width/2);
-        Battleship.EnemyShip.forEachAlive(function(ship) {
-            // flip the position of the enemy platoon
-            ship.angle = 180;
-            ship.hitArea = new Phaser.Circle(ship.width/2, Battleship.EnemyShip.height/2, 32);
-            ship.inputEnabled = true;            
-            ship.events.onInputOver.add(function() {
-                 
-                // make sure it's your turn to attack and always check for ammunition ;)
-                if(Battleship.TURN != ship.parent.name) {
-                    if(Battleship.selected != undefined && Battleship.selected.ammo > 0) {
-                        ship.kill(); 
-                        Battleship.selected.ammo -= 1;     
-                    }
-                    else {
-                        console.log('no ammunition');
-                    }
-                } 
+            else { // place enemyfleet above your screen
+                x = game.world.centerX - (group.width/2);
+                y = game.world.centerY - (group.height);
+            }
 
+            // position the board
+            group.x = x;
+            group.y = y;
+
+            group.forEachAlive(function(ship) {
+
+                if(ship.parent.name == 'enemyfleet') {
+                    ship.pivot.setTo(0.5,0.5);
+                    ship.angle = 180;
+                }
+                if(Battleship.TURN == ship.parent.name) {
+                    ship.ammo = 1
+                }
+
+                // bind event callbacks here.
+                ship.events.onInputDown.add(function(activeShip, pointer) {
+                    if(Battleship.TURN == activeShip.parent.name) {
+                        Battleship.x = pointer.x;
+                        Battleship.y = pointer.y;
+                        Battleship.LineTo = new Phaser.Line(activeShip.worldPosition.x, activeShip.worldPosition.y, pointer.x, pointer.y);
+                        Battleship.selected = activeShip;
+                        game.camera.follow(Battleship.selected, Phaser.Camera.FOLLOW_PLATFORMER);
+                        
+                    }
+
+
+                });
+
+                ship.events.onInputOver.add(function(activeShip) {
+                    // make sure it's your turn to attack and always check for ammunition ;)
+                    if(Battleship.TURN != activeShip.parent.name) {
+                        if(Battleship.selected != undefined && Battleship.selected.ammo > 0) {
+                            activeShip.kill(); 
+                            Battleship.selected.ammo -= 1;     
+                        }
+                        else {
+                            console.log('no ammunition');
+                        }
+                    } 
+
+                });
             });
+
         });
+        game.camera.focusOnXY(game.world.centerX, game.world.centerY);
+        this.cursors = game.input.keyboard.createCursorKeys();
 
     },
     update: function(game) {
+        if (this.cursors.up.isDown)
+        {
+            game.camera.y -= 4;
+        }
+        else if (this.cursors.down.isDown)
+        {
+            game.camera.y += 4;
+        }
+
+        if (this.cursors.left.isDown)
+        {
+            game.camera.x -= 4;
+        }
+        else if (this.cursors.right.isDown)
+        {
+            game.camera.x += 4;
+        }
+
         if(Battleship.selected != undefined ) {
-            var angle = Math.atan2(Battleship.y - game.input.mousePointer.y, Battleship.x - game.input.mousePointer.x) * 180 / Math.PI;
+            var angle = Math.atan2(Battleship.selected.y - game.input.mousePointer.y, Battleship.selected.x - game.input.mousePointer.x) * 180 / Math.PI;
             Battleship.selected.angle = Phaser.Math.radToDeg(Battleship.LineTo.normalAngle)-180;
             Battleship.LineTo.end.set(game.input.mousePointer.x, game.input.mousePointer.y);
 
         }
 
         game.input.onUp.add(function(pointer) {
-            if(Battleship.selected != undefined ) Battleship.selected.movingTween.resume();
+            game.camera.unfollow(Battleship.selected);
             Battleship.selected = undefined;
             Battleship.LineTo = undefined
         });
@@ -124,29 +180,17 @@ function makeBoardGroup (game, pattern, groupName) {
                 shipModel.scale.setTo(0.3,0.3);
                 shipModel.enableBody = true;
                 shipModel.inputEnabled = true;
-                shipModel.movingTween = game.add.tween(shipModel).to({ y: posY - Math.floor((Math.random() * 10) + 1), x: posX - Math.floor((Math.random() * 10) + 1) }, 1100, "Linear", true, 1, 20, true);
-                shipModel.movingTween.loop(true);
+                // shipModel.movingTween = game.add.tween(shipModel).to({ y: posY - Math.floor((Math.random() * 10) + 1), x: posX - Math.floor((Math.random() * 10) + 1) }, 1100, "Linear", true, 1, 20, true);
+                // shipModel.movingTween.loop(true);
                 shipModel.anchor.setTo(0.5, 0.5);
-                // make different conditions for defender and attacker.
-                shipModel.events.onInputDown.add(function(ship, pointer) {
-                    if(Battleship.TURN == shipModel.parent.name) {
-                        // it's your fleet's turn to move
-                        Battleship.x = pointer.x;
-                        Battleship.y = pointer.y;
-                        Battleship.LineTo = new Phaser.Line(ship.worldPosition.x, ship.worldPosition.y, pointer.x, pointer.y);
-
-                        ship.movingTween.pause();
-                        Battleship.selected = ship;
-                    };
-                });
-
 
                 group.addChild(shipModel);
             }
             else {
                 cloud = game.add.sprite(posX,posY, 'cloud');
-                cloud.inputEnabled = false;
-                cloud.scale.set(2.0,2.0);
+                cloud.enableBody = true;
+                cloud.scale.set(3.0,3.0);
+                cloud.anchor.setTo(0.5, 0.5);
                 group.add(cloud);
             }
 

@@ -4,4 +4,4 @@
     var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'game');
     game.state.add('game', BShip.Game );
     game.state.start('game');
-})(Phaser, Battleship, window);
+})(Phaser, BattleshipSingle, window);
