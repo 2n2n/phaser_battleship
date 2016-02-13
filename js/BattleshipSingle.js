@@ -8,42 +8,23 @@ BattleshipSingle.Game.prototype = {
         game.load.image("background", "assets/wallpaper.png");   
     },
     create: function(game){
-
+        // console.log(game);
+        console.log(this)
         game.add.tileSprite(0, 0, 1000, 1000, 'background'); 
+        // new Ship(game);
         game.stage.backgroundColor = "#0B65F8";
 
-        this.player = game.add.sprite(game.world.centerX, game.world.centerY, 'ship');  
-        this.player.enableBody = true;
-        game.physics.arcade.enable(this.player);
+        // assign the player to a variable to access allover the game.
+        this.player = new Hero(game)
+        
+        // for debugging later
+        line = new Phaser.Line();
 
-        this.player.body.collideWorldBounds = true;
-        this.player.body.bounce.setTo(0.8,0.8);
-        this.player.scale.setTo(0.3, 0.3);
-        this.player.anchor.setTo(0.5,0.5);
-        // this.point = new Phaser.Point(this.player.x, this.player.y);
-
-        // enable player physics
-
-        game.input.addMoveCallback(function(pointer, x, y) {
-            line = new Phaser.Line(this.x, this.y, x, y);
-            var rotation = new Phaser.Physics.Arcade(game);
-            rotation = rotation.angleToXY(this, x, y);
-            // console.log(rotation);
-            this.rotation = rotation;
-        }, this.player);
-
-
-        this.cursor = game.input.keyboard.addKeys({
-            'space': Phaser.Keyboard.SPACEBAR
-        });
-
-        // this.gamePointer = new Phaser.Pointer(game, 1,  Phaser.PointerMode.CURSOR);
+        line.start = this.player.position;
+        line.end = game.input.position;
     },
     update: function(game) {
         
-        if(this.cursor.space.isDown) {
-            this.player.rotation = game.physics.arcade.accelerateToPointer(this.player , game.input.cursor, 20, 200, 200);
-        }
         
     },
     render: function(game) {
@@ -52,7 +33,9 @@ BattleshipSingle.Game.prototype = {
         // game.debug.body(this.player);
         // game.debug.spriteBounds(this.player, 'black', false);
         // game.debug.geom(this.point, 'rgb(0,255,0)');
-        // game.debug.pointer(this.input.mousePointer);
+
+        console.log(line.end)
+        game.debug.geom(line);
 
     }
 };
