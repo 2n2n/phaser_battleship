@@ -1,6 +1,6 @@
 var BattleshipSingle = {};
 BattleshipSingle.Game = function(game) {};
-var line;
+var line, x = 0, y = 0;
 BattleshipSingle.Game.prototype = {
     preload: function(game) {
         game.load.image('ship', 'assets/battleship.gif');
@@ -28,7 +28,7 @@ BattleshipSingle.Game.prototype = {
             line = new Phaser.Line(this.x, this.y, x, y);
             var rotation = new Phaser.Physics.Arcade(game);
             rotation = rotation.angleToXY(this, x, y);
-            console.log(rotation);
+            // console.log(rotation);
             this.rotation = rotation;
         }, this.player);
 
@@ -40,15 +40,9 @@ BattleshipSingle.Game.prototype = {
         // this.gamePointer = new Phaser.Pointer(game, 1,  Phaser.PointerMode.CURSOR);
     },
     update: function(game) {
-
+        
         if(this.cursor.space.isDown) {
-            this.player.body.velocity.copyFrom(game.physics.arcade.velocityFromAngle(this.player.angle , 100))
-        }
-        else if(this.cursor.space.isUp) {
-            game.physics.arcade.computeVelocity(1, this.player.body, this.player.body.velocity, 0, 20, 200)
-            // game.physics.arcade.computeVelocity(0, this.player.body, this.player.body.velocity, 0, 20, 200)
-        // //     console.log(this.input.mousePointer.position);
-        // //     this.player.body.velocity = this.input.mousePointer.position;
+            this.player.rotation = game.physics.arcade.accelerateToPointer(this.player , game.input.cursor, 20, 200, 200);
         }
         
     },
