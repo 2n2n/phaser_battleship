@@ -144,7 +144,7 @@ Battleship.Game.prototype = {
         }
 
         if(Battleship.selected != undefined ) {
-            var angle = Math.atan2(Battleship.selected.y - game.input.mousePointer.y, Battleship.selected.x - game.input.mousePointer.x) * 180 / Math.PI;
+            // var angle = Math.atan2(Battleship.selected.y - game.input.mousePointer.y, Battleship.selected.x - game.input.mousePointer.x) * 180 / Math.PI;
             Battleship.selected.angle = Phaser.Math.radToDeg(Battleship.LineTo.normalAngle)-180;
             Battleship.LineTo.end.set(game.input.mousePointer.x, game.input.mousePointer.y);
 
